@@ -20,16 +20,15 @@ body {
   overflow-x: hidden;
 }
 
-@keyframes quiver {
-  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
-  10% { transform: translate(-50%, -50%) translate(-3px, -4px); }
-  20% { transform: translate(-50%, -50%) translate(4px, 3px); }
-  30% { transform: translate(-50%, -50%) translate(-4px, 3px); }
-  40% { transform: translate(-50%, -50%) translate(3px, -3px); }
-  50% { transform: translate(-50%, -50%) translate(-3px, 4px); }
-  60% { transform: translate(-50%, -50%) translate(4px, -3px); }
-  70% { transform: translate(-50%, -50%) translate(-4px, -4px); }
-  80% { transform: translate(-50%, -50%) translate(3px, 4px); }
-  90% { transform: translate(-50%, -50%) translate(-3px, -3px); }
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  12.5% { transform: translate(-50%, -50%) scale(1.2); }
+  25% { transform: translate(-50%, -50%) scale(1.4); }
+  37.5% { transform: translate(-50%, -50%) scale(1.7); }
+  50% { transform: translate(-50%, -50%) scale(2.1); }
+  62.5% { transform: translate(-50%, -50%) scale(2.6); }
+  75% { transform: translate(-50%, -50%) scale(3.2); }
+  87.5% { transform: translate(-50%, -50%) scale(4.0); }
+  100% { transform: translate(-50%, -50%) scale(5.0); }
 }
 

@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function Home() {
-  const [imageUrl, setImageUrl] = useState<string>('')
+  // Image is stored in public folder and referenced directly
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [yesButtonStyle, setYesButtonStyle] = useState<React.CSSProperties>({})
   const [isActive, setIsActive] = useState(false)
+  const activeTimeRef = useRef<number>(0)
   const noButtonRef = useRef<HTMLButtonElement>(null)
   const yesButtonRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
@@ -28,34 +29,45 @@ export default function Home() {
           Math.pow(y - noButtonCenter.y, 2)
         )
 
-        // Trigger zone: within 150px of the No button
-        if (distance < 150) {
+        // Small trigger zone: within 50px of the No button
+        if (!isActive && distance < 50) {
           setIsActive(true)
+          activeTimeRef.current = Date.now()
+        }
+
+        // Once active, follow cursor everywhere on screen
+        if (isActive) {
+          // Calculate base scale based on distance from No button (bigger when closer)
+          const baseScale = distance < 50 ? Math.max(3.0, 4.5 - distance / 50) : 3.0
           
-          // Calculate position to place Yes button (between touch/mouse and No button)
-          const angle = Math.atan2(
-            y - noButtonCenter.y,
-            x - noButtonCenter.x
-          )
+          // Calculate time-based growth multiplier (grows gradually over time)
+          const elapsedSeconds = activeTimeRef.current > 0 ? (Date.now() - activeTimeRef.current) / 1000 : 0
           
-          // Position Yes button to block access to No button
-          const offsetX = Math.cos(angle) * 80
-          const offsetY = Math.sin(angle) * 80
+          // Simple linear growth: grows by 0.3 scale units per second
+          // Starting from baseScale, growing to maxScale over time
+          const maxScale = 25
+          const growthPerSecond = 0.3 // Grows 0.3 scale units per second
+          const totalGrowth = elapsedSeconds * growthPerSecond
+          const currentScale = Math.min(baseScale + totalGrowth, maxScale)
           
-          const scale = Math.max(1.6, 2.2 - distance / 100)
+          // Pulse animation scale (varies between 0.98 and 1.02 of current size when at max, more when growing)
+          const pulsePhase = (elapsedSeconds % 1.5) / 1.5 // 1.5 second pulse cycle
+          const isAtMax = currentScale >= maxScale
+          const pulseRange = isAtMax ? 0.02 : 0.05 // Smaller pulse when at max size
+          const pulseScale = 1 - pulseRange + (Math.sin(pulsePhase * Math.PI * 2) + 1) * pulseRange
           
           setYesButtonStyle({
             position: 'fixed',
-            left: `${x + offsetX}px`,
-            top: `${y + offsetY}px`,
-            transform: `translate(-50%, -50%) scale(${scale})`,
+            left: `${x}px`,
+            top: `${y}px`,
+            transform: `translate(-50%, -50%) scale(${currentScale * pulseScale})`,
             zIndex: 1000,
-            animation: 'quiver 0.25s ease-in-out infinite',
-            transition: 'left 0.08s ease-out, top 0.08s ease-out, transform 0.1s ease-out',
+            transition: 'none',
+            pointerEvents: 'auto',
           })
         } else {
-          setIsActive(false)
           setYesButtonStyle({})
+          activeTimeRef.current = 0
         }
       }
     }
@@ -79,9 +91,10 @@ export default function Home() {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('touchmove', handleTouchMove)
     }
-  }, [])
+  }, [isActive])
 
   const handleYesClick = () => {
+    setIsActive(false)
     router.push('/success')
   }
 
@@ -96,25 +109,21 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 relative overflow-hidden">
       {/* Image Area at Top */}
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl">
-        <div className="w-full aspect-square max-w-md border-4 border-pink-300 border-dashed rounded-lg bg-pink-50 flex items-center justify-center overflow-hidden">
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt="Valentine's Day" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="text-center p-8">
-              <p className="text-pink-400 text-lg mb-4">Add your picture here</p>
-              <input
-                type="text"
-                placeholder="Enter image URL"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="px-4 py-2 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500"
-              />
-            </div>
-          )}
+        <div className="w-full max-w-2xl border-4 border-pink-300 border-dashed rounded-lg bg-pink-50 flex items-center justify-center overflow-hidden p-4">
+          <img 
+            src="/valentine-photo.jpg" 
+            alt="Valentine's Day" 
+            className="max-w-full max-h-[60vh] w-auto h-auto object-contain rounded-lg"
+            onError={(e) => {
+              // Fallback if image doesn't exist
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              const parent = target.parentElement
+              if (parent) {
+                parent.innerHTML = '<div class="text-center p-8 w-full"><p class="text-pink-400 text-lg">Please add your image as "valentine-photo.jpg" in the public folder</p></div>'
+              }
+            }}
+          />
         </div>
       </div>
 
