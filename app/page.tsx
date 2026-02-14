@@ -109,7 +109,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-24 relative overflow-hidden">
       {/* Image Area at Top */}
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl">
-        <div className="w-full max-w-2xl border-4 border-pink-300 border-dashed rounded-lg bg-pink-50 flex items-center justify-center overflow-hidden p-4">
+        <div className="w-full max-w-2xl rounded-lg bg-pink-50 flex items-center justify-center overflow-hidden p-4">
           <img 
             src="/valentine-photo.jpg" 
             alt="Valentine's Day" 
